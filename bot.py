@@ -12,16 +12,11 @@ logger = logging.getLogger(__name__)
 
 # a good class
 class goodguy():
-    def __init__(self):
+    def __init__(self, directory):
         self.warstarted = False
-        self.gotattacker = False
-        self.gotdefender = False
-        self.gotatkdir = False
-        self.gotatkmil = False
-        self.gotatkmen = False
-        self.gotdefdir = False
-        self.gotdefmil = False
-        self.gotdefmen = False
+        
+        self.gettinginfo = None
+        self.warprepared = False
         
         self.attacker = None
         self.defender = None
@@ -32,7 +27,9 @@ class goodguy():
         self.defmil = [] 
         self.defmen = []
 
-infos = goodguy()
+        self.directory = directory
+
+infos = goodguy("P:\\Projects\\Programming\\Python\\Telegram bots\\SBSchoolWars\\local\\War")
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
@@ -47,7 +44,7 @@ def help(update, context):
 
 
 def oceanman(update, context):
-    rt = readtext("P:\\Projects\\Programming\\Python\\Telegram bots\\SBSchoolWars\\local\\War")
+    rt = readtext(infos.directory)
     content = rt.givefulltext("oh.txt")
     update.message.reply_text(content)
     
@@ -57,23 +54,87 @@ def error(update, context):
 
 
 def wars(update, context):
-    if update.effective_chat.id == 579675526 and infos.warstarted == False:
+    if infos.warstarted == False and update.message.from_user.id == 579675526:
        infos.warstarted = True
-       rt = readtext('local\\war')
+       infos.gettinginfo = "attacker"
+       rt = readtext(infos.directory)
        update.message.reply_text(rt.givetextline('gt\\questions.txt'))
+    else:
+        update.message.reply_text("war already started")
         
         
 def msg(update, context):
-    if update.effective_chat.id == 579675526 and infos.warstarted:
-        if not infos.gotattacker:
+    
+    if infos.warstarted and not infos.warprepared:
+        if infos.gettinginfo == "attacker" and update.message.text.lower().startswith("info:"):
             got = update.message.text.split(" ")
-            attacker = country(got[0], got[1], got[2], got[3], got[4])
+            attacker = country(got[1], got[2], got[3], got[4], got[5])
             infos.attacker = attacker 
-            infos.gotattacker = True
-            rt = readtext('local\\war')
+            infos.gettinginfo = "defender"
+            rt = readtext(infos.directory)
             update.message.reply_text(rt.givetextline('gt\\questions.txt', 2))
+            
+        elif infos.gettinginfo == "defender" and update.message.text.lower().startswith("info:"):
+            got = update.message.text.split(" ")
+            defender = country(got[1], got[2], got[3], got[4], got[5])
+            infos.defender = defender
+            infos.gettinginfo = "attackdir"
+            rt = readtext(infos.directory)
+            update.message.reply_text(rt.givetextline('gt\\questions.txt', 3))
+            
+        
+        elif infos.gettinginfo == "attackdir" and (update.message.text.lower().startswith("info:") or  update.message.text.lower() == "y"):
+            if update.message.text.lower() == "y":
+                infos.gettinginfo = "defenddir"
+                rt = readtext(infos.directory)
+                update.message.reply_text(rt.givetextline('gt\\questions.txt', 5))
+                
+            else:
+                got = update.message.text.split(" ")
+                attackdir = country(got[1], got[2], got[3], got[4], got[5])
+                infos.atkdir.append(attackdir)
+                rt = readtext(infos.directory)
+                update.message.reply_text(rt.givetextline('gt\\questions.txt', 4))
+
+                
+        elif infos.gettinginfo == "defenddir" and (update.message.text.lower().startswith("info:") or  update.message.text.lower() == "y"):
+            if update.message.text.lower() == "y":
+                infos.gettinginfo = "attackmil"
+                rt = readtext(infos.directory)
+                update.message.reply_text(rt.givetextline('gt\\questions.txt', 7))
+                infos.warprepared = True
+                
+            else:
+                got = update.message.text.split(" ")
+                defenderdir = country(got[1], got[2], got[3], got[4], got[5])
+                infos.defdir.append(defenderdir)
+                rt = readtext(infos.directory)
+                update.message.reply_text(rt.givetextline('gt\\questions.txt', 6))
+        
+    elif update.message.text == "شروع":
+        war = warstarter(infos.attacker, infos.defender, infos.atkdir, defdir = infos.defdir)
+        update.message.reply_text("{} side military power is: {}".format(war.attacker.name, war.atkpow))
+        update.message.reply_text("{} side military power is: {}".format(war.defender.name, war.defpow))
+            
+
         
         
+def cancel(update, context):
+    infos.warstarted = False
+        
+    infos.gettinginfo = None
+    infos.warprepared = False
+        
+    infos.attacker = None
+    infos.defender = None
+    infos.atkdir = []
+    infos.atkmil = []
+    infos.atkmen = []
+    infos.defdir = []
+    infos.defmil = [] 
+    infos.defmen = []
+    
+    update.message.reply_text("war canceled")
     
     
     
@@ -93,6 +154,7 @@ def main():
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("warstart", wars))
     dp.add_handler(CommandHandler("oceanman", oceanman))
+    dp.add_handler(CommandHandler("cancel", cancel))
 
     # on noncommand i.e message
     dp.add_handler(MessageHandler(Filters.text, msg))

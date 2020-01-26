@@ -1,12 +1,17 @@
 # WAR manager
 
+from random import randint
+
 class country():
     def __init__(self, name, warmen, bmp, statenum, dmid):
         self.name = name
-        self.warmen = warmen
-        self.bmp = bmp
-        self.dmid = dmid
-        self.statenum = statenum
+        self.warmen = int(warmen)
+        self.bmp = int(bmp)
+        if dmid.lower() == "bot":
+            self.dmid = dmid.lower()
+        else:
+            self.dmid = int(dmid)
+        self.statenum = int(statenum)
         
     def modifybmp(self, percentage):
       modify = self.bmp * percentage * 0.01
@@ -59,6 +64,8 @@ class warstarter():
     def addlosses(self, atklosses, deflosses):
         self.atklossinfo.append(atklosses)
         self.deflossinfo.append(deflosses)
-            
+    
+    def rolldice(self):
+        return randint(1, 6)
         
         
