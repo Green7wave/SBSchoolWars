@@ -27,6 +27,12 @@ class goodguy():
         self.defmil = [] 
         self.defmen = []
 
+        self.attackerid = 0
+        self.defenderid = 0
+        self.rollturn = None
+        
+        self.war = None
+
         self.directory = directory
 
 infos = goodguy("P:\\Projects\\Programming\\Python\\Telegram bots\\SBSchoolWars\\local\\War")
@@ -112,9 +118,36 @@ def msg(update, context):
                 update.message.reply_text(rt.givetextline('gt\\questions.txt', 6))
         
     elif update.message.text == "شروع":
-        war = warstarter(infos.attacker, infos.defender, infos.atkdir, defdir = infos.defdir)
-        update.message.reply_text("{} side military power is: {}".format(war.attacker.name, war.atkpow))
-        update.message.reply_text("{} side military power is: {}".format(war.defender.name, war.defpow))
+        dewar = warstarter(infos.attacker, infos.defender, infos.atkdir, defdir = infos.defdir)
+        infos.war = dewar
+        rd = readtext(infos.directory)
+        content = rd.givefulltext('gt\\format.txt')
+        update.message.reply_text(content.format(stategot = 0, stateleft = 0, atklost = dewar.atkloss, deflost = dewar.defloss, lifeatk = dewar.atkpow - dewar.atkloss, lifedef = dewar.defpow - dewar.defloss))
+        infos.rollturn = "attacker"
+        
+def roll(update, context):
+    if infos.war != None:
+        dewar = infos.war
+        if infos.rollturn == "attacker":
+            attackdice = dewar.rolldice()
+            dewar.attackdice = attackdice
+            update.message.reply_text("{} rolled:\n   {}".format(dewar.attacker.name, attackdice))
+            infos.rollturn = "defender"
+        else:
+            defenddice = dewar.rolldice()
+            dewar.defenddice = defenddice
+            update.message.reply_text("{} rolled:\n   {}".format(dewar.attacker.name, attackdice))
+            fate = dewar.decide()
+            if fate == 1:
+                update.message.reply_text("{} wins!".format(dewar.attacker.name))
+            elif fate == 2:
+                update.message.reply_text("{} wins!".format(dewar.defender.name))
+            else:
+                rd = readtext(infos.directory)
+                content = rd.givefulltext('gt\\format.txt')
+                update.message.reply_text(content.format(stategot = dewar.gotstates, stateleft = dewar.leftstates, atklost = dewar.atkloss, deflost = dewar.defloss, lifeatk = dewar.atklife, lifedef = dewar.deflife))
+            
+        
             
 
         
@@ -124,6 +157,7 @@ def cancel(update, context):
         
     infos.gettinginfo = None
     infos.warprepared = False
+    infos.war = None
         
     infos.attacker = None
     infos.defender = None
