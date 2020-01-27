@@ -220,11 +220,11 @@ def roll(update, context):
             
             
             elif fate == 2:
-                update.message.reply_text("{} WINS THE LAND!".format(dewar.attacker.name))
+                update.message.reply_animation(animation='https://media.giphy.com/media/xUPJPDtjF6wKt2u1wI/giphy.gif' ,caption="{} WINS THE LAND!".format(dewar.attacker.name))
                 cancel(update, context, True)
             
             elif fate == 1:
-                update.message.reply_text("{} MAKES THE INVADERS F OFF, HORRAY!".format(dewar.defender.name))
+                update.message.reply_animation(animation = 'https://media.giphy.com/media/3og0ISQx9U3HNywJW0/giphy.gif' ,caption = "{} MAKES THE INVADERS F OFF, HORRAY!".format(dewar.defender.name))
                 cancel(update, context, True)
             else:
                 rd = readtext(infos.directory)
@@ -271,7 +271,7 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("warstart", wars))
-    #dp.add_handler(CommandHandler("oceanman", oceanman))
+    dp.add_handler(CommandHandler("oceanman", oceanman))
     dp.add_handler(CommandHandler("cancel", cancel))
     dp.add_handler(CommandHandler("roll", roll))
 
