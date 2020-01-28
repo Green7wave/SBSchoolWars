@@ -31,6 +31,7 @@ class warstarter():
         self.defdir = defdir
         
         # SPECIAL VARIABLES
+        self.justlost = None
         self.atkloss = 0
         self.defloss = 0
         self.atklossinfo = []
@@ -88,19 +89,22 @@ class warstarter():
         #determine loss
         if self.atkdice == self.defdice:
             if self.atklife == 1 or self.deflife == 1:
-                pass
+                self.justlost = None
             else:
                 self.atklife -= 1
                 self.deflife -= 1
                 self.atkloss += 1
                 self.defloss += 1
+                self.justlost = None
+                
         elif self.atkdice > self.defdice:
             self.deflife -= 1
             self.defloss += 1
+            self.justlost = "def"
         elif self.atkdice < self.defdice:
             self.atklife -= 1
             self.atkloss += 1
-            
+            self.justlost = "atk"
         #see if its the end
         if self.atklife == 0 and self.gotstates != 0:
             self.gotstates -= 1
@@ -138,6 +142,12 @@ class warstarter():
         else:
             c = randint(1, 10)
             if c > 5:
-                return 7
+                if self.justlost == None:
+                    pass
+                elif self.justlost == "atk":
+                    return 7
+                elif self.justlost == "def":
+                    return 8
+                    
             else:
                 return 0

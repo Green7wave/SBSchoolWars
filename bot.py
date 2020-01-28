@@ -4,6 +4,8 @@ from warmng import country, warstarter
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from time import sleep
 from telegram import ForceReply
+from random import randint
+
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -27,7 +29,10 @@ class goodguy():
         self.defdir = []
         self.defmil = [] 
         self.defmen = []
-
+        self.atktheme = []
+        self.deftheme = []
+        
+        
         self.attackerid = 0
         self.defenderid = 0
         self.rollturn = None
@@ -65,7 +70,7 @@ def wars(update, context):
        infos.warstarted = True
        infos.gettinginfo = "attacker"
        rt = readtext(infos.directory)
-       update.message.reply_text(rt.givetextline('gt\\questions.txt'))
+       update.message.reply_text(rt.givetextline('gt\\questions.txt'), reply_markup = ForceReply(True, True))
     else:
         update.message.reply_text("war already started")
         
@@ -161,8 +166,7 @@ def msg(update, context):
                 
         elif infos.gettinginfo == "defendmen" and (update.message.text.lower().startswith("info:") or  update.message.text.lower() == "y"):
             if update.message.text.lower() == "y":
-                infos.gettinginfo = "finished"
-                infos.warprepared = True
+                infos.gettinginfo = "atktheme"
                 rt = readtext(infos.directory)
                 update.message.reply_text(rt.givetextline('gt\\questions.txt', 14), reply_markup = ForceReply(True, True))
                 
@@ -174,7 +178,30 @@ def msg(update, context):
                 rt = readtext(infos.directory)
                 update.message.reply_text(rt.givetextline('gt\\questions.txt', 13), reply_markup = ForceReply(True, True))
         
-        
+        elif infos.gettinginfo == "atktheme" and update.message.text.lower().startswith("info:"):
+            got = update.message.text.split(" ")
+            theme = []
+            for i in got:
+                if i.lower() != "info:":
+                    theme.append(i)
+               
+            infos.atktheme = theme
+            infos.gettinginfo = "deftheme"
+            rt = readtext(infos.directory)
+            update.message.reply_text(rt.givetextline('gt\\questions.txt', 15), reply_markup = ForceReply(True, True))
+            
+        elif infos.gettinginfo == "deftheme" and update.message.text.lower().startswith("info:"):
+            got = update.message.text.split(" ")
+            theme = []
+            for i in got:
+                if i.lower() != "info:":
+                    theme.append(i)
+               
+            infos.deftheme = theme
+            infos.gettinginfo = "finished"
+            infos.warprepared = True
+            rt = readtext(infos.directory)
+            update.message.reply_text(rt.givetextline('gt\\questions.txt', 16), reply_markup = ForceReply(True, True))
         
     elif update.message.text == "شروع" and infos.warprepared:
         dewar = warstarter(infos.attacker, infos.defender, infos.atkdir, infos.atkmil, infos.atkmen, infos.defdir, infos.defmil, infos.defmen)
@@ -226,6 +253,36 @@ def roll(update, context):
             elif fate == 1:
                 update.message.reply_animation(animation = 'https://media.giphy.com/media/3og0ISQx9U3HNywJW0/giphy.gif' ,caption = "{} MAKES THE INVADERS F OFF, HORRAY!".format(dewar.defender.name))
                 cancel(update, context, True)
+            elif fate == 7:
+                choice = randint(1, 2)
+                rd = readtext(infos.directory)
+                if choice == 1:
+                    rani = randint(0, len(infos.deftheme) - 1)
+                    content = rd.giverantxt('defense\\good\\'+ infos.deftheme[rani] + '.txt')
+                else:
+                    rani = randint(0, len(infos.atktheme) - 1)
+                    content = rd.giverantxt('attack\\bad\\'+ infos.atktheme[rani] + '.txt')
+                
+                update.message.reply_text(content.format(attacker = dewar.attacker.name, defender = dewar.defender.name))
+                sleep(1.5)
+                content = rd.givefulltext('gt\\format.txt')
+                update.message.reply_text(content.format(stategot = dewar.gotstates, stateleft = dewar.leftstates, atklost = dewar.atkclos, deflost = dewar.defclos, nameatk = dewar.attacker.name, namedef = dewar.defender.name, lifeatk = dewar.atklife, lifedef = dewar.deflife))
+            
+            elif fate == 8:
+                choice = randint(1, 2)
+                rd = readtext(infos.directory)
+                if choice == 1:
+                    rani = randint(0, len(infos.deftheme) - 1)
+                    content = rd.giverantxt('defense\\bad\\'+ infos.deftheme[rani] + '.txt')
+                else:
+                    rani = randint(0, len(infos.atktheme) - 1)
+                    content = rd.giverantxt('attack\\good\\'+ infos.atktheme[rani] + '.txt')
+                
+                update.message.reply_text(content.format(attacker = dewar.attacker.name, defender = dewar.defender.name))
+                sleep(1.5)
+                content = rd.givefulltext('gt\\format.txt')
+                update.message.reply_text(content.format(stategot = dewar.gotstates, stateleft = dewar.leftstates, atklost = dewar.atkclos, deflost = dewar.defclos, nameatk = dewar.attacker.name, namedef = dewar.defender.name, lifeatk = dewar.atklife, lifedef = dewar.deflife))
+            
             else:
                 rd = readtext(infos.directory)
                 content = rd.givefulltext('gt\\format.txt')
